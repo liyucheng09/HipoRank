@@ -110,7 +110,7 @@ def get_online_paper(urls):
                 continue
             for para in sec.find_elements_by_tag_name('p'):
                 sents.extend(sent_tokenize(para.text))
-            secs.append(Section(index, sents, meta={'sec_title': sec_title}))
+            secs.append(Section(index, sents, meta={'sec_title': '-' + sec_title}))
         doc = Document(secs, title=title, url = url, meta={'abstract': abstracts})
         docs.append(doc)
     
