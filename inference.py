@@ -99,13 +99,21 @@ def get_online_paper(urls):
     docs = []
     for url in urls:
         driver.get(url)
-        time.sleep(3)
+        time.sleep(1)
         title = driver.find_element_by_class_name('title-text').text
-        abstracts = [i.text for i in driver.find_elements_by_xpath('//div[starts-with(@id, "abss")]')]
+        abstracts = [i.text for i in driver.find_elements_by_xpath('//div[starts-with(@id, "abss") or starts-with(@id, "as0") or starts-with(@id, "abstract")]')]
         secs = []
-        for index, sec in enumerate(driver.find_elements_by_xpath('//section[starts-with(@id, "sec")]')):
+        for index, sec in enumerate(driver.find_elements_by_xpath('//section[starts-with(@id, "sec0") or starts-with(@id, "s0") or contains(@id,"section")]')):
             sents = []
-            sec_title = sec.find_element_by_tag_name('h2').text
+            try:
+                sec_title = sec.find_element_by_tag_name('h2').text
+            except:
+                if len(sec.find_elements_by_tag_name('h3')) > 0 :
+                    subsec_title = sec.find_element_by_tag_name('h3').text
+                    print("Subsection occurs: ", subsec_title, url)
+                    continue
+                else:
+                    sec_title = 'No section title.'
             if 'appendix' in sec_title.lower():
                 continue
             for para in sec.find_elements_by_tag_name('p'):
@@ -170,8 +178,10 @@ if __name__ == '__main__':
 
     results_path = Path(f"data/inference/results")
 
+    with open('data/inference/urils.txt', encoding='utf-8') as f:
+        urls = f.read().split('\n')
     docs = get_online_paper(urls)
-    summaries = summarize_doc(docs)
+    summaries = summarize_doc(docs, num_words= 600)
     
     for index, summ in enumerate(summaries):
         output_to_markdown(summ, results_path/f'{index}.md')
